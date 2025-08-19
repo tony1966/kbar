@@ -1,139 +1,171 @@
-## 教學文件
-###  安裝
-```
+# 📈 kbar
+
+`kbar` 提供一個簡單的 `KBar` 類別，專門用來繪製金融 K 線圖（candlestick chart）。  
+它是 [`mplfinance`](https://github.com/matplotlib/mplfinance) 的輕量級封裝，並額外支援：  
+
+- 🔹 內建成交量副圖（volume）  
+- 🔹 自訂技術指標副圖（例如 RSI、MACD）  
+- 🔹 自訂疊圖（例如 SMA、均線）  
+- 🔹 自動設定中文字型（避免亂碼）  
+
+---
+
+## 🚀 安裝
+```bash
 pip install kbar
 ```
-### 匯入類別
-```
+
+---
+
+## 🛠 匯入
+```python
 from kbar import KBar
-# 或 import kbar
+# 或
+import kbar
 ```
-### 準備股票價量資料 (以 yfinance 為例)
-```
+
+---
+
+## 📊 使用教學
+
+### 1️⃣ 準備股票價量資料（以 yfinance 為例）
+```python
 import yfinance as yf
-df=yf.download('0050.tw', start='2024-07-01', end='2024-08-21', auto_adjust=False)
-df.columns=df.columns.map(lambda x: x[0])  # 改為單層欄位
+df = yf.download('0050.TW', start='2024-07-01', end='2024-08-21', auto_adjust=False)
+
+# 轉換為單層欄位名稱（避免多層索引）
+df.columns = df.columns.map(lambda x: x[0])
 ```
-### 繪製簡單的 K 線圖 (預設不顯示成交量副圖)
-```
-kb=KBar(df)
-# 或 kb=kbar.KBar(df) 若使用 import kbar
+
+---
+
+### 2️⃣ 繪製簡單的 K 線圖
+```python
+kb = KBar(df)
+# 或 kb = kbar.KBar(df) 若使用 import kbar
 kb.plot()
 ```
-### 繪製有內建成交量副圖 (參數 volume) 之 K 線圖
+
+---
+
+### 3️⃣ 繪製含成交量的 K 線圖
+```python
+kb = KBar(df)
+kb.plot(volume=True)  # 成交量副圖會顯示在 panel=1
 ```
-kb=KBar(df)
-# 或 kb=kbar.KBar(df) 若使用 import kbar
-kb.plot(volume=True) # 成交量副圖預設佔用 panel=1
-```
-### 繪製有自訂副圖 (RSI 指標) 之 K 線圖 
-```
+
+---
+
+### 4️⃣ 添加自訂副圖（例：RSI 指標）
+```python
 from talib.abstract import RSI
-kb=KBar(df)
-# 將欄位名稱改為小寫 (Ta-Lib 的要求)
-df.columns=[column.lower() for column in df.columns]
-rsi=RSI(df) # 計算 RSI 指標
-# 添加 RSI 副圖 (panel=1~9, 使用 panel=2)
-kb.addplot(rsi, panel=2, ylabel='RSI') 
-kb.plot(volume=True) # 成交量副圖預設佔用 panel=1
-# 註 : 若 volume=False 則自訂副圖可使用 panel=1
+
+# Ta-Lib 需要欄位小寫
+df.columns = [c.lower() for c in df.columns]
+
+rsi = RSI(df)
+
+kb = KBar(df)
+kb.addplot(rsi, panel=2, ylabel='RSI')  # RSI 畫在 panel=2
+kb.plot(volume=True)
 ```
-### 繪製有內建均線疊圖 (參數 mav) 之 K 線圖
+
+---
+
+### 5️⃣ 繪製內建均線（mav）
+```python
+kb = KBar(df)
+kb.plot(mav=5)        # 繪製 5 日均線
+# kb.plot(mav=[3,5,7]) # 繪製多條均線
 ```
-kb=KBar(df)
-kb.plot(mav=5) # 繪製 5 日均線疊圖
-# kb.plot(mav=[3, 5, 7]) # 繪製 3, 5, 7 日均線疊圖
-# 註 : 疊圖不論幾條都佔用 panel=0
-```
-### 繪製有自訂疊圖 (SMA 指標) 之 K 線圖
-```
+
+---
+
+### 6️⃣ 添加自訂疊圖（例：SMA 均線）
+```python
 from talib.abstract import SMA
-kb=KBar(df)
-# 將欄位名稱改為小寫 (Ta-Lib 的要求)
-df.columns=[column.lower() for column in df.columns]
-# 計算 SMA 指標
-sma3=SMA(df['close'].values, timeperiod=3)
-sma5=SMA(df['close'].values, timeperiod=5) 
-sma7=SMA(df['close'].values, timeperiod=7)
-# 添加 SMA 疊圖 (疊圖都在 panel=0)
-kb.addplot(sma3, panel=0) # 3 日均線疊圖
-kb.addplot(sma5, panel=0) # 5 日均線疊圖
-kb.addplot(sma7, panel=0) # 7 日均線疊圖
-kb.plot(volume=True) # 成交量副圖預設佔用 panel=1
-# 註 : 疊圖不論幾條都佔用 panel=0
+
+df.columns = [c.lower() for c in df.columns]
+
+sma3 = SMA(df['close'], timeperiod=3)
+sma5 = SMA(df['close'], timeperiod=5)
+sma7 = SMA(df['close'], timeperiod=7)
+
+kb = KBar(df)
+kb.addplot(sma3, panel=0, color='blue', width=1)
+kb.addplot(sma5, panel=0, color='orange', width=1)
+kb.addplot(sma7, panel=0, color='green', width=1)
+
+kb.plot(volume=True)
 ```
 
-## Documentation
-'kbar.py' provides a simple class 'KBar' for handling financial
-candlestick chart plotting. This class is a wrapper around the
-'mplfinance' library and supports additional features such as
-adding auxiliary plots.
-### Classes and Methods
-#### Class: 'KBar'
-The 'KBar' class simplifies the process of drawing candlestick
-charts and supports custom styles and auxiliary plots.
-##### Constructor
+---
+
+## 📚 API 文件
+
+### `class KBar`
+
+封裝 `mplfinance`，提供簡化的 K 線圖繪製與副圖管理。
+
+#### 🔹 建構子
+```python
 KBar(df)
-- ##### Parameters: 
-  - 'df' (pandas.DataFrame): A DataFrame containing financial data, which should include the following columns:
-    - 'Open': Opening prices.
-    - 'High': Highest prices.
-    - 'Low': Lowest prices.
-    - 'Close': Closing prices.
-    - 'Volume' (optional): Trading volume.
----
-##### Method: 'addplot(data, **kwargs)'
-Adds auxiliary plots to the candlestick chart.
+```
 
-addplot(data, **kwargs)
-- ##### Parameters:
-  - 'data' (Series or ndarray): The data to be plotted.
-  - '**kwargs': Arguments passed to 'mplfinance.make_addplot()',                including:
-    - 'color': Line color.
-    - 'width': Line width.
-    - 'scatter': Whether to plot as a scatter plot.
-    - 'markersize': Marker size for scatter plots.
-    - 'marker': Marker style for scatter plots.
-- ##### Functionality:
-  - This method appends auxiliary plots to the 'KBar' object for
-    display during plotting.    
----
-##### Method: 'plot(**kwargs)'
-Plots the candlestick chart with auxiliary plots and custom styles.
+- **df** (`pandas.DataFrame`)：必須包含以下欄位：  
+  - `Open`: 開盤價  
+  - `High`: 最高價  
+  - `Low`: 最低價  
+  - `Close`: 收盤價  
+  - `Volume`（可選）：成交量  
 
-plot(**kwargs)
-- ##### Parameters:
-  - '**kwargs': Arguments passed to 'mplfinance.plot()'.
-                Supported options include:
-    - 'type': Chart type (fixed as 'candle').
-    - 'style': Chart style (fixed as use 'Microsoft JhengHei' font).
-    - 'volume': Whether to show the volume bar chart.
-    - 'returnfig': If 'True', returns the 'Figure' object for the plot.
-    - Other arguments supported by 'mplfinance.plot()'.
-
-- ##### Functionality:
-  - Draws a candlestick chart with auxiliary plots.
-  - Returns the 'matplotlib.figure.Figure' and axes objects if
-    'returnfig=True'.
 ---
-### Example Usage
-#### Inport classes, moduals, or packages
+
+#### 🔹 方法：`addplot(data, **kwargs)`
+添加自訂副圖或疊圖。  
+
+- **data** (`Series` 或 `ndarray`)：要繪製的資料  
+- **kwargs**：傳遞給 `mplfinance.make_addplot()` 的參數，例如：  
+  - `color`：線條顏色  
+  - `width`：線條寬度  
+  - `panel`：放置的圖表區（0=主圖，1~9=副圖）  
+  - `ylabel`：副圖標籤  
+
+---
+
+#### 🔹 方法：`plot(**kwargs)`
+繪製 K 線圖，可同時顯示副圖與疊圖。  
+
+- **kwargs**：傳遞給 `mplfinance.plot()` 的參數，例如：  
+  - `volume`：是否顯示成交量副圖  
+  - `mav`：均線（整數或整數清單）  
+  - `returnfig`：若 `True`，回傳 `(fig, axes)`  
+
+---
+
+## 📘 範例
+```python
 import yfinance as yf
 from kbar import KBar
-#### Download financial data
-df = yf.download('0050.TW', start='2024-08-20', end='2025-01-20')
-df.columns=df.columns.map(lambda x: x[0])  # single layer 
-#### Initialize KBar
+
+df = yf.download("0050.TW", start="2024-08-20", end="2025-01-20")
+df.columns = df.columns.map(lambda x: x[0])
+
 kb = KBar(df)
-#### Add auxiliary plot
-kb.addplot(df['Close'].rolling(window=5).mean(), color='blue', width=1)
-#### Plot candlestick chart
-kb.plot(volume=True)
+kb.addplot(df['Close'].rolling(5).mean(), color='blue', width=1)
+kb.plot(volume=True, mav=5)
+```
 
 ---
-### Dependencies
-- 'mplfinance': Used for financial chart plotting.
-- 'matplotlib': Underlying plotting library.
+
+## 📦 依賴套件
+- `mplfinance`
+- `matplotlib`
+- `pandas`
+- `numpy < 2`
+- `pyarrow`（pandas 內部需要）
+
 ---
-### More examples
-- 
+
+## 📝 授權
+MIT License
