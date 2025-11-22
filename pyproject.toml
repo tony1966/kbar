@@ -54,3 +54,4 @@ where = ["src"]
 [project.urls]
 "Homepage" = "https://github.com/tony1966/kbar/"
 "Bug Tracker" = "https://github.com/tony1966/kbar/issues"
+"Documentation" = "https://github.com/tony1966/kbar/#readme"
