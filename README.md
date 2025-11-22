@@ -162,7 +162,7 @@ kb.plot(volume=True, mav=5)
 - `mplfinance`
 - `matplotlib`
 - `pandas`
-- `numpy < 2`
+- `numpy`
 - `pyarrow`（pandas 內部需要）
 
 ---
